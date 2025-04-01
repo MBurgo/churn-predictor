@@ -19,14 +19,20 @@ if "step" not in st.session_state:
 
 step_names = [
     "Upload Data",
-    "Unify Data (Pandas)",
+    "Unify Data",
     "Identify Churn Factors",
     "Build Prediction Model",
     "Retention Actions",
     "Automation Ideas",
 ]
 
-st.markdown(f"### 🧭 Step {st.session_state.step}: **{step_names[st.session_state.step - 1]}**")
+progress_percent = (st.session_state.step / len(step_names))
+st.progress(progress_percent)
+
+step_indicator = " > ".join(
+    [f"**{name}**" if i+1 == st.session_state.step else name for i, name in enumerate(step_names)]
+)
+st.markdown(f"### 🧭 Workflow Progress: {step_indicator}")
 
 def ai_call(prompt, system_message="You are an expert assistant."):
     response = client.chat.completions.create(
@@ -42,11 +48,10 @@ def ai_call(prompt, system_message="You are an expert assistant."):
 if st.session_state.step == 1:
     st.header("📂 Upload Your Datasets")
     st.markdown("""
-    Welcome to my entry for the Prompt Masters Challenge—an interactive prototype demonstrating how AI can proactively identify at-risk members by intelligently unifying data from multiple sources (Stripe, Braze, and Zendesk).
+    Welcome to my entry for the Prompt Masters Challenge — an interactive "proof of concept" prototype demonstrating how AI could help proactively identify members at risk of churning. 
 
-    This tool demonstrates how we can use AI to help proactively identify members at risk of churning by intelligently unifying data from disparate sources - in this case: subscription, engagement, and support data (from Stripe, Braze, and Zendesk). Where AI has been employed, you’ll see the actual AI prompts powering the analysis and have the opportunity to execute AI-driven tasks to produce actionable insights for reducing churn.
-    
-    First, you'll need to upload the dummy data sets you have been provided. Due to data privacy considerations, I obviously did not want to use actual data extracts from our Braze, Stripe and Zendesk instances. For that reason, I have employed synthetic datasets for demonstration purposes. However, it should be noted that these datasets have specifically been formatted to accurately reflect our real-world data structures and typical customer behaviors recorded in those systems.
+    Please upload the provided synthetic datasets (formatted to mirror real-world structures from Stripe, Braze, and Zendesk). AI-powered insights await you in the following steps!
+
     """)
     braze_file = st.file_uploader("📩 Upload Braze CSV", type="csv")
     stripe_file = st.file_uploader("💳 Upload Stripe CSV", type="csv")
@@ -65,7 +70,7 @@ if st.session_state.step == 1:
 elif st.session_state.step == 2:
     st.header("🔗 Dataset Unification using Pandas")
     st.markdown("""
-    In this step, the datasets you've uploaded are unified into a single dataset using pandasto provide a robust and scalable approach to data preparation for AI-driven churn analysis. In my initial planning stages, I anticipated using AI to unify our datasets. However, through careful experimentation I realised an important point: effective use of AI means knowing when **not** to use it, too. Given the complexity, scale, and precision required for data unification, I realised that for this demo, traditional tools like pandas offered superior reliability and efficiency.
+    In this step, the datasets you've uploaded are unified into a single dataset using pandas to provide a robust and scalable approach to data preparation for AI-driven churn analysis. In my initial planning stages, I anticipated using AI to unify our datasets. However, through careful experimentation I realised an important point: effective use of AI means knowing when **not** to use it, too. Given the complexity, scale, and precision required for data unification, I realised that for this demo, traditional tools like pandas offered superior reliability and efficiency.
     """)
 
     if "unified_df" not in st.session_state:
@@ -118,15 +123,26 @@ elif st.session_state.step == 2:
         csv = st.session_state.unified_df.to_csv(index=False)
         st.download_button("📥 Download Full Unified Dataset", data=csv,
                            file_name="unified_dataset.csv", mime="text/csv")
-        if st.button("Proceed to Churn Factor Analysis →"):
-            st.session_state.step = 3
-            st.rerun()
+
+
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            if st.button("⬅️ Back to Data Upload"):
+                st.session_state.step = 1
+                st.rerun()
+
+        with col2:
+            if st.button("➡️ Proceed to Churn Factor Analysis →"):
+                st.session_state.step = 3
+                st.rerun()
+
+
 
 # STEP 3: Identify Churn Factors
 elif st.session_state.step == 3:
     st.header("📊 Churn Factor Identification")
     st.markdown("""
-    In this step, we utlise AI to analyse the unified dataset to clearly identify and rank key factors that predict churn, providing explicit thresholds that indicate increased risk.
+    In this step, we utilise AI to analyse the unified dataset to clearly identify and rank key factors that predict churn, providing explicit thresholds that indicate increased risk.
     """)
     with st.expander("🔍 View the actual AI prompt powering this step"):
         st.code(CHURN_FACTORS_PROMPT, language='markdown')
@@ -135,118 +151,97 @@ elif st.session_state.step == 3:
         if st.button("Identify Churn Factors Now"):
             with st.spinner("🤖 Analyzing churn factors..."):
                 prompt = f"{CHURN_FACTORS_PROMPT}\n\n### Unified Dataset (CSV):\n{st.session_state.unified_df.to_csv(index=False)}"
-                st.session_state.churn_factors_analysis = ai_call(prompt, "You are an expert churn analyst.")
+                st.session_state.churn_factors_analysis = ai_call(prompt, "You are a world-class churn analyst with deep expertise in behavioral analytics and customer psychology. Your job is to uncover the hidden patterns that drive member churn, explain your reasoning clearly, and suggest practical insights that can guide real-world retention strategies. Always think step-by-step, prioritize human-understandable insights, and highlight anything unexpected that may be worth further exploration.")
                 st.success("✅ Churn factors identified successfully!")
 
     if "churn_factors_analysis" in st.session_state:
         st.markdown(st.session_state.churn_factors_analysis)
-        if st.button("Proceed to Prediction Model →"):
-            st.session_state.step = 4
-            st.rerun()
 
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            if st.button("⬅️ Back to Data Unification"):
+                st.session_state.step = 2
+                st.rerun()
+
+        with col2:
+            if st.button("➡️ Proceed to Prediction Model →"):
+                st.session_state.step = 4
+                st.rerun()
 
 # STEP 4: Build Prediction Model
 elif st.session_state.step == 4:
     st.header("🧮 Build Churn Prediction Model")
     st.markdown("""
-    Here, AI creates a practical, easy-to-understand scoring model based on previously identified churn factors. This model calculates each member’s risk of churn.
+    In this step, GPT-4o generates Python code to create an interpretable churn scoring model tailored specifically to your dataset.
+
+    **Workflow Explained Clearly:**
+    1. Click **"🛠️ Generate Scoring Logic"**: GPT-4o produces Python code designed specifically for the provided data.
+    2. Click **"▶️ Apply Generated Scoring Logic to Data"**: Executes the displayed Python code to calculate churn risk scores and assign clear risk segments.
+
+    **Note:** The Python code displayed is only provided for transparency, allowing verification before application.
     """)
+
     with st.expander("🔍 View the actual AI prompt powering this step"):
         st.code(CHURN_MODEL_PROMPT, language='markdown')
 
     if "ai_generated_scoring_code" not in st.session_state:
-        if st.button("🛠️ Generate and Apply AI-Based Scoring Logic"):
-            with st.spinner("🤖 Generating and applying scoring logic from AI..."):
-                churn_analysis = st.session_state.churn_factors_analysis
+        if st.button("🛠️ Generate Scoring Logic"):
+            with st.spinner("🤖 Generating scoring logic using GPT-4o..."):
+                prompt = f"{CHURN_MODEL_PROMPT}\n\n### Unified Dataset (CSV):\n{st.session_state.unified_df.to_csv(index=False)}"
 
-                try:
-                    payment_failures_thresh_match = re.search(r'Payment Failures.*?≥\s*(\d+)', churn_analysis, re.I)
-                    email_click_thresh_match = re.search(r'Days Since Last Email Click.*?≥\s*(\d+)', churn_analysis, re.I)
-                    total_payments_thresh_match = re.search(r'Total Payments.*?≤\s*(\d+)', churn_analysis, re.I)
-                    percent_emails_clicked_thresh_match = re.search(r'Percent Emails Clicked.*?<\s*([\d.]+)', churn_analysis, re.I)
-                    tickets_thresh_match = re.search(r'Number of Tickets.*?≥\s*(\d+)', churn_analysis, re.I)
+                system_msg = (
+                    "You are a senior data scientist with deep expertise in customer churn analytics and behavioral modeling. "
+                    "Your job is to design a practical, interpretable, and human-readable scoring model that classifies customers by churn risk. "
+                    "Provide production-ready Python code with inline comments clearly explaining each step. Explicitly state thresholds chosen based on realistic customer behaviors derived from provided data. "
+                    "Provide ONLY executable Python code, without markdown fences or explanations."
+                )
 
-                    payment_failures_thresh = int(payment_failures_thresh_match.group(1)) if payment_failures_thresh_match else 2
-                    email_click_thresh = int(email_click_thresh_match.group(1)) if email_click_thresh_match else 90
-                    total_payments_thresh = int(total_payments_thresh_match.group(1)) if total_payments_thresh_match else 1
-                    percent_emails_clicked_thresh = float(percent_emails_clicked_thresh_match.group(1)) if percent_emails_clicked_thresh_match else 0.2
-                    tickets_thresh = int(tickets_thresh_match.group(1)) if tickets_thresh_match else 3
+                ai_code = ai_call(prompt, system_msg)
+                st.session_state.ai_generated_scoring_code = ai_code
 
-                except AttributeError as e:
-                    st.error(f"Regex extraction failed. Please review churn analysis text: {e}")
-                    st.stop()
+    if "ai_generated_scoring_code" in st.session_state:
+        st.subheader("🔧 AI-Generated Churn Scoring Code")
+        st.code(st.session_state.ai_generated_scoring_code, language='python')
 
-                scoring_code = f'''
-import pandas as pd
-
-def calculate_churn_risk(row):
-    risk_score = 0
-
-    if row['payment_failures'] >= {payment_failures_thresh}:
-        risk_score += 0.3
-    if row['days_since_last_email_click'] >= {email_click_thresh}:
-        risk_score += 0.25
-    if row['total_payments'] <= {total_payments_thresh}:
-        risk_score += 0.15
-    if row['percent_emails_clicked'] < {percent_emails_clicked_thresh}:
-        risk_score += 0.2
-    if row['number_of_tickets'] >= {tickets_thresh}:
-        risk_score += 0.1
-
-    risk_score = min(risk_score, 1)
-
-    if risk_score >= 0.75:
-        risk_segment = 'High Risk'
-    elif risk_score >= 0.4:
-        risk_segment = 'Moderate Risk'
-    else:
-        risk_segment = 'Low Risk'
-
-    return pd.Series([risk_score, risk_segment])
-
-df[['churn_risk_score', 'churn_risk_segment']] = df.apply(calculate_churn_risk, axis=1)
-'''
-                st.session_state.ai_generated_scoring_code = scoring_code
-                st.write("🔧 Dynamically Generated Scoring Logic:")
-                st.code(scoring_code, language='python')
-
+        if st.button("▶️ Apply Generated Scoring Logic to Data"):
+            with st.spinner("🔄 Applying scoring logic to dataset..."):
                 df = st.session_state.unified_df.copy()
 
-                numeric_cols = ['payment_failures', 'percent_emails_clicked', 'days_since_last_email_click', 'number_of_tickets', 'total_payments']
+                numeric_cols = ['payment_failures', 'percent_emails_clicked',
+                                'days_since_last_email_click', 'number_of_tickets',
+                                'total_payments']
                 for col in numeric_cols:
                     df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
 
-                original_churn_status = df['churn_status'].copy()
+                # Extract clean Python code (remove markdown if present)
+                import re
+
+                code_match = re.search(r'```python\n(.*?)\n```', st.session_state.ai_generated_scoring_code, re.DOTALL)
+                executable_code = code_match.group(1) if code_match else st.session_state.ai_generated_scoring_code
 
                 try:
-                    exec(scoring_code, {'df': df, 'pd': pd})
-
-                    required_cols = ['churn_risk_score', 'churn_risk_segment']
-                    for col in required_cols:
-                        if col not in df.columns:
-                            st.error(f"AI logic failed to produce required column: {col}")
-                            st.stop()
-
-                    df['churn_status'] = original_churn_status
-                    st.session_state.scored_df = df[['customer_id', 'email', 'churn_status', 'churn_risk_score', 'churn_risk_segment']]
-                    st.success("✅ Churn scoring logic applied successfully!")
-
-                    active_df = df[df['churn_status'] == 'Active']
-                    st.subheader("🚨 Debugging: Score Distribution Check (Active Only)")
-                    st.write(active_df[['churn_risk_score']].describe())
-
-                    # FIXED: Robust segment counting explicitly avoiding column name clashes
-                    segment_counts = active_df['churn_risk_segment'].value_counts().reset_index()
-                    segment_counts.columns = ['churn_risk_segment', 'segment_count']
-                    st.write(segment_counts)
-
+                    exec(executable_code, {'df': df, 'pd': pd})
                 except Exception as e:
-                    st.error(f"Error executing AI-generated scoring logic: {e}")
+                    st.error(f"❗ Error applying scoring logic: {e}")
+                    with st.expander("📄 Debugging - View AI-generated code"):
+                        st.code(executable_code, language='python')
+                    st.warning("🔁 Please regenerate scoring logic or manually correct the displayed Python code.")
                     st.stop()
 
+                required_cols = ['churn_risk_score', 'churn_risk_segment']
+                for col in required_cols:
+                    if col not in df.columns:
+                        st.error(f"❗ Missing required column: {col}")
+                        st.stop()
+
+                st.session_state.scored_df = df[['customer_id', 'email', 'churn_status',
+                                                 'churn_risk_score', 'churn_risk_segment']]
+                st.success("✅ Churn scoring logic applied successfully!")
+
     if "scored_df" in st.session_state:
-        active_customers_df = st.session_state.scored_df[st.session_state.scored_df['churn_status'] == 'Active'].copy()
-        active_customers_df.reset_index(drop=True, inplace=True)
+        active_customers_df = st.session_state.scored_df[
+            st.session_state.scored_df['churn_status'] == 'Active'
+        ].copy().reset_index(drop=True)
 
         st.subheader("🔍 Customer Churn Scores (Active Customers Only)")
         st.dataframe(active_customers_df, use_container_width=True)
@@ -259,26 +254,39 @@ df[['churn_risk_score', 'churn_risk_segment']] = df.apply(calculate_churn_risk, 
             mime="text/csv"
         )
 
-        if st.button("Proceed to Retention Actions →"):
-            st.session_state.step = 5
-            st.rerun()
 
 
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            if st.button("⬅️ Back to Data Unification"):
+                st.session_state.step = 3
+                st.rerun()
 
+        with col2:
+            if st.button("➡️ Proceed to Retention Actions →"):
+                st.session_state.step = 5
+                st.rerun()
 
 # STEP 5: Retention Actions
 elif st.session_state.step == 5:
-    st.header("📌 Recommended Retention Actions")
+    st.header("📌 Tailored Retention Actions by Risk Segment")
     st.markdown("""
-    In this stage, AI categorizes members into clear risk segments and recommends tailored, actionable retention strategies for each segment.
+    In this step, GPT-4o takes the churn risk segments you've identified and generates personalized, psychology-driven retention strategies tailored specifically for each risk category (High, Moderate, and Low Risk).
+
+    ### 🔍 **Here's exactly what's happening:**
+    1. **Risk Segment Classification:** GPT-4o first confirms each member’s churn risk segment (High, Moderate, or Low).
+    2. **Personalized Retention Strategies:** AI generates tailored retention actions that leverage behavioral psychology, clearly addressing why each segment might churn and what can persuade them to remain engaged.
+    3. **Downloadable Retention Plan:** After generation, you'll get a downloadable, actionable CSV that clearly matches every member to their recommended retention action.
+
+    Click **"🚀 Generate Tailored Retention Strategies"** to proceed. You'll receive actionable strategies ready for immediate use.
     """)
+
     with st.expander("🔍 View the actual AI prompt powering this step"):
         st.code(RISK_SEGMENTS_ACTIONS_PROMPT, language='markdown')
 
     if "retention_strategies" not in st.session_state:
-        if st.button("Generate Retention Strategies"):
-            with st.spinner("🤖 Crafting strategies..."):
-                # Explicitly ensure using ONLY active customers
+        if st.button("🚀 Generate Tailored Retention Strategies"):
+            with st.spinner("✨ Generating tailored retention strategies..."):
                 active_customers_df = st.session_state.scored_df[
                     st.session_state.scored_df['churn_status'] == 'Active'
                 ]
@@ -289,7 +297,10 @@ elif st.session_state.step == 5:
                     f"{active_customers_df[['email', 'churn_risk_segment']].to_csv(index=False)}"
                 )
 
-                ai_response = ai_call(prompt, "You are a retention specialist.")
+                ai_response = ai_call(
+                    prompt,
+                    "You are a senior customer retention strategist with expertise in behavioral psychology, customer engagement, and churn prevention. Provide detailed, psychologically informed retention actions tailored precisely to each customer's churn risk segment. Prioritize actionable, personalized strategies clearly differentiated by risk level."
+                )
 
                 try:
                     from io import StringIO
@@ -297,14 +308,18 @@ elif st.session_state.step == 5:
                     st.session_state.retention_strategies = retention_df
                     st.success("✅ Retention strategies generated successfully!")
                 except Exception as e:
-                    st.error(f"Error parsing AI response: {e}")
+                    st.error(
+                        "❗ The retention strategies generated by AI could not be parsed. "
+                        "Please regenerate or review the raw output below for troubleshooting."
+                    )
+                    with st.expander("📄 View Raw AI Response for Debugging"):
+                        st.text(ai_response)
                     st.stop()
 
     if "retention_strategies" in st.session_state:
-        st.subheader("Retention Strategies Table")
+        st.subheader("📋 Retention Strategies Table")
         st.dataframe(st.session_state.retention_strategies, use_container_width=True)
 
-        # Provide CSV download
         csv = st.session_state.retention_strategies.to_csv(index=False)
         st.download_button(
             "📥 Download Retention Strategies CSV",
@@ -313,9 +328,17 @@ elif st.session_state.step == 5:
             mime="text/csv"
         )
 
-        if st.button("Proceed to Automation Ideas →"):
-            st.session_state.step = 6
-            st.rerun()
+
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            if st.button("⬅️ Back to Prediction Model"):
+                st.session_state.step = 4
+                st.rerun()
+
+        with col2:
+            if st.button("➡️ Proceed to Automation Ideas →"):
+                st.session_state.step = 6
+                st.rerun()
 
 
 
@@ -323,20 +346,32 @@ elif st.session_state.step == 5:
 elif st.session_state.step == 6:
     st.header("⚙️ Automation Recommendations")
     st.markdown("""
-    Finally, AI proposes practical automation solutions to scale this churn prediction and retention workflow, outlining how future enhancements could further improve predictive accuracy and efficiency.
+    In this final step, GPT-4o generates practical, actionable recommendations to automate and scale your churn prediction and retention workflow from a prototype into a robust, fully operational system.
+
+    ### 🚀 **What you'll receive:**
+    - **Automated Data Ingestion**: Clear recommendations for seamlessly integrating data from Stripe, Braze, and Zendesk using reliable API solutions.
+    - **Scheduled Predictions & Updates**: Guidance on automating churn predictions, regularly updating models, and ensuring ongoing accuracy.
+    - **Automated Retention Actions**: Specific strategies to automatically deploy personalized retention campaigns based on churn segments.
+    - **Reporting & Alerts**: Suggestions for creating engaging dashboards, monitoring performance, and alerting your team to critical issues in real-time.
+    - **Scalable Infrastructure**: Clear technology recommendations for scaling this workflow in a robust, cost-effective manner.
+
+    ### 📌 **Instructions:**
+    Click the **"Generate Automation Recommendations"** button to see GPT-4o's suggestions. Review carefully and implement recommendations that best align with your team's goals and infrastructure.
+
     """)
+
     with st.expander("🔍 View the actual AI prompt powering this step"):
         st.code(AUTOMATION_IDEAS_PROMPT, language='markdown')
 
     if "automation_plan" not in st.session_state:
-        if st.button("Suggest Automation Solutions"):
+        if st.button("Generate Automation Recommendations"):
             with st.spinner("🤖 Generating automation solutions..."):
                 context = (
                     f"Churn Factors Analysis:\n{st.session_state.churn_factors_analysis}\n\n"
                     f"Retention Strategies:\n{st.session_state.retention_strategies}"
                 )
                 prompt = f"{AUTOMATION_IDEAS_PROMPT}\n\n### Context:\n{context}"
-                st.session_state.automation_plan = ai_call(prompt, "You are an automation expert.")
+                st.session_state.automation_plan = ai_call(prompt, "You are a senior automation architect with deep expertise in designing scalable and practical workflow automation solutions. Your task is to carefully recommend detailed, actionable strategies that clearly address technical implementation steps, scalability, reliability, and seamless integration within existing infrastructures. Provide structured, practical, and clear recommendations suitable for immediate consideration and deployment.")
                 st.success("✅ Automation strategies generated successfully!")
 
     if "automation_plan" in st.session_state:
