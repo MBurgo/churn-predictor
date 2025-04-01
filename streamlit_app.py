@@ -70,7 +70,10 @@ if st.session_state.step == 1:
 elif st.session_state.step == 2:
     st.header("🔗 Dataset Unification using Pandas")
     st.markdown("""
-    In this step, the datasets you've uploaded are unified into a single dataset using pandas to provide a robust and scalable approach to data preparation for AI-driven churn analysis. In my initial planning stages, I anticipated using AI to unify our datasets. However, through careful experimentation I realised an important point: effective use of AI means knowing when **not** to use it, too. Given the complexity, scale, and precision required for data unification, I realised that for this demo, traditional tools like pandas offered superior reliability and efficiency.
+    In this step, the uploaded datasets are unified into a single dataset using pandas.  
+
+    Initially, I planned to use GPT-4o for this step. However, careful testing made me realise something important: effective use of AI also means knowing when **not** to use it. For large-scale, precise data integration tasks, traditional tools like pandas offered more reliability, scalability, and efficiency.  
+    Using pandas in this step ensured a robust data foundation, allowing AI to shine in subsequent steps — analyzing patterns and providing actionable insights.
     """)
 
     if "unified_df" not in st.session_state:
