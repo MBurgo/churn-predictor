@@ -359,7 +359,7 @@ elif st.session_state.step == 6:
     - **Scalable Infrastructure**: Clear technology recommendations for scaling this workflow in a robust, cost-effective manner.
 
     ### 📌 **Instructions:**
-    Click the **"Generate Automation Recommendations"** button to see GPT-4o's suggestions. Review carefully and implement recommendations that best align with your team's goals and infrastructure.
+    Click the **"Generate Automation Recommendations"** button to see GPT-4o's suggestions. 
 
     """)
 
