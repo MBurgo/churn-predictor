@@ -50,12 +50,15 @@ Clearly define the new column `churn_status` derived from Stripe’s `subscripti
 CHURN_FACTORS_PROMPT = '''
 ## 📗 **AI-driven Churn Factor Identification Prompt**
 
+You are a world-class churn analyst working with The Motley Fool Australia to proactively identify why members cancel their subscriptions. Your insights drive high-impact retention strategies by pinpointing the strongest behavioral and transactional signals of customer churn.
+
 ---
 
-Context: As a churn analyst at The Motley Fool Australia, your insights directly support our strategic goal of reducing member churn and increasing renewal rates. Clearly understanding churn factors enables targeted interventions and proactive retention strategies.
-
-### 🎯 **Goal of this Prompt:**
-You are an AI-powered churn analyst tasked with analyzing a unified customer dataset containing subscription, engagement, and support data to identify and rank the factors most strongly associated with customer churn.
+### 🔍 Objective:
+Analyze the unified customer dataset and **identify the most predictive churn factors**. Your task is to:
+1. Rank predictors by correlation with `churn_status`.
+2. Explain the behavioral logic behind each correlation.
+3. Recommend actionable thresholds for high- and moderate-correlation features.
 
 ---
 
@@ -80,12 +83,14 @@ Your dataset contains these fields:
 
 ---
 
-### 📌 **Instructions:**
+### 📌 **Step-by-Step Instructions:**
 
 **Step 1: Identify & Rank Churn Factors**  
-Analyze the provided dataset and identify which customer characteristics and behaviors have the strongest correlation with churn (`churn_status = "Churned"`).  
+- Analyze the provided dataset 
+- Reason step-by-step through each variable and its likely relationship with churn
+- Then identify which customer characteristics and behaviors have the strongest correlation with churn (`churn_status = "Churned"`).  
 
-Rank these churn predictors by correlation strength into three clear categories:  
+Then, rank these churn predictors by correlation strength into three clear categories:  
 - **High correlation**
 - **Moderate correlation**
 - **Low correlation**
@@ -121,7 +126,6 @@ Churn Factor Identification Analysis:
 3. Low Correlation Predictors:
 - Subscription Type (Epic vs. Basic)  
   Explanation: Subscription type alone has minimal impact; engagement and experience matter more.
-```
 
 ---
 
@@ -138,122 +142,122 @@ Churn Factor Identification Analysis:
 CHURN_MODEL_PROMPT = """
 ## 🧮 **AI-driven Churn Prediction Scoring Logic**
 
-As an expert data scientist supporting The Motley Fool Australia’s strategic retention efforts, your goal is to design clear, practical churn prediction scoring logic. Accurate scoring empowers our team to proactively engage members at the greatest risk of churn, directly improving retention and renewal rates.
+You are a senior data scientist at The Motley Fool Australia. Your goal is to create a practical, interpretable scoring model that classifies members into churn risk segments based on their behaviors and interactions. This logic is crucial for driving targeted retention strategies.
 
 ---
 
-### ✅ Dataset Fields Provided (already loaded into pandas DataFrame `df`):
-- customer_id
-- email
-- subscription_type
-- total_payments
-- payment_failures
-- percent_emails_clicked
-- days_since_last_email_click
-- number_of_tickets
-- recent_ticket_issue
-- churn_status (Active or Churned)
+### 🎯 Objective
+Design clear, actionable, rule-based churn prediction scoring logic:
+- Calculate a numeric `churn_risk_score` (0.0 to 1.0).
+- Classify members into segments based on their score:
+  - **High Risk**: ≥ 0.75
+  - **Moderate Risk**: 0.4 to 0.74
+  - **Low Risk**: < 0.4
 
 ---
 
-### 🎯 Your Objective:
-Design a practical, easy-to-implement, **rule-based churn prediction scoring logic** based on these fields.
+### 📂 Dataset Provided (`df` already loaded)
+
+```
+customer_id
+email
+subscription_type
+total_payments
+payment_failures
+percent_emails_clicked
+days_since_last_email_click
+number_of_tickets
+recent_ticket_issue
+churn_status ("Churned" or "Active")
+```
 
 ---
 
-### ⚠️ **IMPORTANT INSTRUCTIONS (Read carefully):**
-- **Do NOT attempt to read or load any external CSV or dataset files.**
-- Assume the DataFrame named `df` is already loaded into memory.
-- Your code must modify `df` directly by adding new columns.
-- Do NOT overwrite the existing `df` DataFrame; only add the two new columns.
+### ✅ Instructions
+- Analyze the provided dataset to identify predictive thresholds and assign logical weights.
+- Create a scoring function that clearly reflects behavioral insights.
+- Assign scores based on realistic thresholds (e.g., payment failures, email engagement).
+- Clearly segment users into risk categories based on the calculated score.
+- Provide inline comments to clarify reasoning for each rule.
 
 ---
 
-### 📌 Instructions:
-
-1. **Analyze the provided sample dataset** carefully to identify realistic thresholds and relationships between features and churn.
-2. **Define clear thresholds and assign specific weights** to each predictive feature. For example:
-   - `payment_failures` ≥ 2 → add 0.3 to churn_risk_score
-   - `percent_emails_clicked` < 20% → add 0.2 to churn_risk_score
-   - `days_since_last_email_click` ≥ 90 → add 0.25 to churn_risk_score
-   - etc.
-3. Briefly but clearly justify your scoring logic.
-4. Your resulting churn_risk_score must be numeric on a scale from 0 to 1.
-5. Classify churn risk based on the final churn_risk_score:
-   - **High Risk**: churn_risk_score ≥ 0.75
-   - **Moderate Risk**: churn_risk_score between 0.4 and 0.74
-   - **Low Risk**: churn_risk_score < 0.4
+### 🚨 Critical Output Instructions
+- Provide **ONLY** executable Python code.
+- Do **NOT** include markdown fences (no ```python ... ``` blocks).
+- Do **NOT** include explanations or text outside of inline Python comments.
+- Your Python code must directly modify the existing DataFrame `df` by adding two new columns:
+  - `churn_risk_score`
+  - `churn_risk_segment`
 
 ---
 
-### 🛠️ Provide your output as executable Python code that uses pandas to create two new fields: `churn_risk_score` and `churn_risk_segment`.
-
-Follow this structured example exactly:
+### ⚠️ Output Example (Format to Follow Exactly)
 
 ```python
-# Example (Replace with your analysis-based logic)
-import pandas as pd
-
 def calculate_churn_risk(row):
     risk_score = 0
 
+    # Increment score based on realistic conditions
     if row['payment_failures'] >= 2:
         risk_score += 0.3
-    if row['percent_emails_clicked'] < 20:
+    if row['percent_emails_clicked'] < 0.2:
         risk_score += 0.2
     if row['days_since_last_email_click'] >= 90:
         risk_score += 0.25
-    if row['number_of_tickets'] >= 3:
-        risk_score += 0.15
-    if row['total_payments'] <= 1:
-        risk_score += 0.1
 
+    # Ensure the score stays within bounds
     risk_score = min(risk_score, 1)
 
+    # Define segments based on risk score
     if risk_score >= 0.75:
-        risk_segment = 'High Risk'
+        segment = 'High Risk'
     elif risk_score >= 0.4:
-        risk_segment = 'Moderate Risk'
+        segment = 'Moderate Risk'
     else:
-        risk_segment = 'Low Risk'
+        segment = 'Low Risk'
 
-    return pd.Series([risk_score, risk_segment])
+    return pd.Series([risk_score, segment])
 
+# Apply scoring function to dataframe
 df[['churn_risk_score', 'churn_risk_segment']] = df.apply(calculate_churn_risk, axis=1)
-
-### ✅ CRITICAL REQUIREMENTS:
-- Provide your scoring logic explicitly within markdown python fences (python ... ).
-- Do **NOT** attempt to read external files (pd.read_csv or similar operations are explicitly prohibited).
-- Ensure your logic is realistic, actionable, and clearly explained. 
-- Ensure your code directly modifies the provided DataFrame df.
 """
 
 
 RISK_SEGMENTS_ACTIONS_PROMPT = """
 ## 🎯 **Risk Segments and Retention Actions Prompt**
 
-You are an AI-powered churn analyst assisting The Motley Fool Australia in strategically improving member retention. Your goal is to analyze churn prediction scores, classify members into clear risk segments, and recommend tailored retention strategies. This targeted approach supports our strategic priority of increasing member renewal rates by proactively addressing potential churn.
+You are an expert retention strategist at The Motley Fool Australia, focused on strategically preventing customer churn through personalized, psychology-driven interventions. Your task is to provide clear, actionable retention strategies tailored explicitly for members classified into churn risk segments based on their churn prediction scores.
 
 ---
 
-### ✅ Dataset Provided:
-Your dataset includes these fields:
-- `email`
-- `churn_risk_score`
-- `churn_risk_segment`
+### 📊 Dataset Provided (CSV format):
+
+```
+email,churn_risk_segment
+user1@example.com,High Risk
+user2@example.com,Moderate Risk
+user3@example.com,Low Risk
+...
+```
+
+- **High Risk (score ≥ 0.75)**: Strong signals of imminent churn
+- **Moderate Risk (score between 0.4 and 0.74)**: Clear indications of declining engagement
+- **Low Risk (score < 0.4)**: Generally stable, but opportunities exist for enhanced loyalty
 
 ---
 
-### 📌 Instructions:
-1. Classify each customer into risk categories based on their `churn_risk_score`:
-   - **High Risk (≥ 0.75)**: Members strongly indicating imminent churn.
-   - **Moderate Risk (0.4 – 0.74)**: Members showing clear signs of declining engagement.
-   - **Low Risk (< 0.4)**: Members displaying stable engagement with lower churn probability.
+### ✅ Task Instructions:
 
-2. Provide detailed and creatively tailored retention strategies, highlighting personalized interventions, psychological engagement methods, and loyalty-building activities for each risk segment:
-   - **High Risk**: Immediate intervention (e.g., personalized outreach from a dedicated retention specialist, tailored incentives based on member history) addressing likely dissatisfaction or disengagement.
-   - **Moderate Risk**: Targeted re-engagement campaigns (e.g., personalized reactivation email series featuring relevant content, member success stories, and exclusive renewal incentives) designed to reignite member interest.
-   - **Low Risk**: Ongoing retention maintenance (e.g., engaging newsletters highlighting valuable insights, exclusive rewards programs recognizing loyalty and tenure) aimed at reinforcing positive engagement and long-term satisfaction.
+1. **Clearly differentiate strategies by segment:**
+   - **High Risk:** Immediate, high-touch interventions to directly address dissatisfaction and rapidly rebuild engagement.
+   - **Moderate Risk:** Personalized outreach focused on re-engagement, emphasizing tailored value and reminders of membership benefits.
+   - **Low Risk:** Loyalty-building strategies, reinforcing positive engagement and strengthening brand attachment.
+
+2. **Incorporate psychological and behavioral insights** (e.g., urgency, exclusivity, reciprocity, personalization) to increase effectiveness.
+
+3. **Provide strategies in an immediately actionable format.**
+
 
 ---
 
@@ -276,40 +280,53 @@ user3@example.com,Low Risk,"Exclusive loyalty rewards and engaging newsletters h
 
 
 AUTOMATION_IDEAS_PROMPT = """
-## ⚙️ **Automation Strategies for AI-Powered Churn Prediction Workflow**
+## ⚙️ AI-Driven Automation Recommendations for Churn Prediction Workflow
 
-You are an AI-powered automation expert assisting The Motley Fool Australia in scaling an AI-driven churn prediction prototype. Your task is to suggest practical and detailed automation solutions to operationalize and scale the existing churn prediction workflow developed in a Streamlit app, leveraging mock datasets from Stripe (subscription/payment data), Braze (email engagement data), and Zendesk (support ticket data).
-
-Your goal is to automate this prototype into a fully scalable solution, reducing manual intervention, ensuring data freshness, and enabling proactive churn interventions at scale.
-
-Additionally, consider how this workflow could be enhanced in the future by integrating more diverse datasets—such as web content interactions, customer chat histories, social media engagement data, or other relevant customer touchpoints—to improve predictive accuracy and the personalization of retention efforts.
+You are a senior automation expert at The Motley Fool Australia. Your task is to clearly outline practical and actionable automation strategies to operationalize and scale the existing churn prediction and retention workflow, currently demonstrated via a Streamlit prototype. Your recommendations should detail specifically how to transition this workflow into a fully automated solution, enhancing efficiency, reliability, and predictive accuracy at scale.
 
 ---
 
-### ✅ Project Context and Existing Infrastructure:
-- The current prototype is a Streamlit web application.
-- It utilizes OpenAI’s GPT-4o API to perform key tasks (churn factor analysis, churn prediction, retention strategies).
-- Current data inputs are manually uploaded CSV exports from Stripe, Braze, and Zendesk.
+### 📌 Context & Current Infrastructure:
+- **Current Application:** Streamlit-based prototype.
+- **AI Engine:** OpenAI GPT-4o (used for churn factor analysis, scoring logic, retention strategies).
+- **Data Inputs:** Currently manual CSV uploads from Stripe (subscription/payment data), Braze (email engagement), Zendesk (support).
 
 ---
 
-### 📌 Instructions:
-Clearly outline automation steps specifically relevant to this project, addressing:
+### 🎯 Your Objectives:
 
-- **Automated Data Collection**: Integrate directly with Stripe, Braze, and Zendesk via APIs for near-real-time data ingestion. Additionally, provide considerations on how future data sources (e.g., web interactions, chat logs) could be integrated seamlessly.
-- **Scheduled Predictions and Model Updates**: Automate periodic execution of churn prediction scoring logic and segment updates.
-- **Automated Action Workflows**: Automatically trigger personalized retention strategies (e.g., automated emails via Braze, proactive Zendesk support outreach).
-- **Reporting and Monitoring**: Automate analytics dashboards reflecting churn metrics, retention performance, and insights gained from future data integrations.
-- **Scalable Infrastructure**: Recommend specific technologies and architectures (cloud platforms, serverless computing, containerization) suitable for scaling this prototype now and accommodating future enhancements.
+Clearly address these critical areas in your automation recommendations, structured explicitly for readability, clarity, and visual appeal:
 
-Also, describe how the OpenAI API (GPT-4o) can be continuously integrated into automated workflows to ensure ongoing AI-driven insights and improvements.
+1. **Automated Data Ingestion:**
+   - Suggest integration tools for automatically ingesting real-time data directly from Stripe, Braze, and Zendesk APIs.
+   - Clearly describe data transformation and storage solutions, emphasizing ease of use and reliability.
+
+2. **Scheduled Churn Predictions & Continuous Model Updates:**
+   - Recommend practical automation strategies for regularly scheduled churn predictions.
+   - Detail approaches for continuous model retraining and version control clearly and succinctly.
+
+3. **Automated Retention Workflows:**
+   - Outline clear, automated retention strategies based on churn risk segments.
+   - Include specific recommendations for integrating communication and support tools.
+
+4. **Reporting & Monitoring:**
+   - Suggest visually engaging dashboard tools and monitoring solutions.
+   - Provide clear examples of alerting mechanisms for anomalies or performance thresholds.
+
+5. **Scalable Infrastructure:**
+   - Recommend cloud platforms and scalable deployment strategies clearly and concisely.
+   - Clearly articulate advantages of recommended infrastructure choices.
+
+6. **Future Enhancements (Optional but Encouraged):**
+   - Provide engaging and practical suggestions for additional data integrations.
+   - Highlight opportunities for deeper customer insights and personalization strategies.
 
 ---
 
-### ✅ Output Requirements:
-- Provide a detailed automation plan tailored specifically to this Streamlit-based churn prediction project, clearly addressing current functionality and future data integrations.
-- Specify recommended tools, cloud platforms, integrations, and considerations necessary for accommodating future data sources.
-- Optionally include a clear system architecture diagram or textual representation of the automated workflow steps, highlighting both current and potential future integrations.
+### 🚨 Critical Output Requirements:
+- Structure your output clearly and engagingly, using numbered sections, bullet points, and emojis to visually highlight key elements.
+- Aim for concise yet descriptive language that clearly communicates your recommendations and their benefits.
+- Clearly state the practical business benefit of each automation recommendation (e.g., reducing manual workload, increasing predictive accuracy, improving retention outcomes).
 """
 
 
